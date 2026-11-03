@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Какой ты слушатель</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700&family=Unbounded:wght@600;800&display=swap">
+<style>
+/* Layout: одна колонка по центру. Экран один: старт, вопрос или результат.
+   Вопрос состоит из двух больших карточек-иллюстраций, подпись лежит плашкой на картинке. */
+:root {
+  --bg: #EEEDF4;
+  --surface: #FFFFFF;
+  --ink: #16141D;
+  --muted: #5E5A70;
+  --line: #CFCCDD;
+  --btn: #2F4BFF;
+  --btn-ink: #FFFFFF;
+  --c-loud: #FFD23F;
+  --c-calm: #2F4BFF;
+  --c-social: #FF6FA3;
+  --c-solo: #B9F0D8;
+  --on-loud: #16141D;
+  --on-calm: #FFFFFF;
+  --on-social: #16141D;
+  --on-solo: #16141D;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #13121A;
+    --surface: #1E1C29;
+    --ink: #F1EFFA;
+    --muted: #A7A3BC;
+    --line: #34314A;
+    --btn: #7C8CFF;
+    --btn-ink: #0F0E16;
+    --c-calm: #7C8CFF;
+    --on-calm: #0F0E16;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #13121A;
+  --surface: #1E1C29;
+  --ink: #F1EFFA;
+  --muted: #A7A3BC;
+  --line: #34314A;
+  --btn: #7C8CFF;
+  --btn-ink: #0F0E16;
+  --c-calm: #7C8CFF;
+  --on-calm: #0F0E16;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.45;
+  padding-block: 20px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.stage { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.topbar b { font-family: var(--display); font-weight: 600; color: var(--ink); letter-spacing: .02em; text-transform: none; font-size: 14px; }
+
+h1, h2 { font-family: var(--display); font-weight: 800; line-height: 1.05; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(36px, 11vw, 56px); }
+h2 { font-size: clamp(22px, 6vw, 30px); }
+p { margin: 0; }
+.lead { color: var(--muted); max-width: 36ch; }
+
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--btn); outline-offset: 3px; }
+
+.btn {
+  background: var(--btn); color: var(--btn-ink);
+  border: 0; border-radius: 999px; padding: 16px 28px;
+  font-weight: 700; font-size: 17px; min-height: 52px;
+}
+.btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
+.row { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.pic { display: block; width: 100%; height: auto; aspect-ratio: 1024 / 1104; object-fit: cover; border-radius: 22px; background: var(--line); }
+
+/* старт */
+.start { display: flex; flex-direction: column; gap: 20px; align-items: flex-start; }
+.start .pic { max-width: min(78vw, 340px); align-self: center; }
+
+/* прогресс */
+.progress { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+.progress i { height: 6px; border-radius: 3px; background: var(--line); }
+.progress i.done { background: var(--btn); }
+.progress i.now { background: var(--ink); }
+
+/* вопрос */
+.q { display: flex; flex-direction: column; gap: 18px; }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 12px; }
+.card {
+  position: relative; display: block; min-width: 0; padding: 0; border: 0; border-radius: 22px;
+  overflow: hidden; background: var(--line); text-align: left;
+  transition: transform .18s ease;
+}
+.card:nth-child(1) { transform: rotate(-1.2deg); }
+.card:nth-child(2) { transform: rotate(1.2deg) translateY(10px); }
+@media (hover: hover) { .card:hover { transform: rotate(0) translateY(0); } }
+.card:active { transform: scale(.97); }
+.card .pic { border-radius: 0; }
+.card .label {
+  display: block; background: transparent;
+  padding: 12px 12px 16px;
+  font-weight: 500; font-size: 15px; line-height: 1.3; overflow-wrap: normal; hyphens: manual;
+}
+
+/* карточки: подрезаем края картинки и растворяем низ в фон, чтобы не было полосок */
+.card .cardpic { aspect-ratio: 2 / 3; border-radius: 0; background: var(--bg); }
+
+/* герой на старте и в результате: оживляем только часть картинки */
+.hero { position: relative; width: 100%; align-self: center; border-radius: 22px; overflow: hidden; }
+.start .hero { max-width: min(78vw, 340px); }
+.result .hero { max-width: min(82vw, 380px); }
+.hero .pic { max-width: none; }
+.hero .ov { position: absolute; pointer-events: none; }
+.sheen { border-radius: 50%; mix-blend-mode: screen; background: conic-gradient(from 0deg, rgba(255,255,255,0) 0 8%, rgba(255,255,255,.5) 12%, rgba(255,255,255,0) 18% 55%, rgba(255,255,255,.35) 60%, rgba(255,255,255,0) 66%); }
+.squash { transform: scaleY(.34); overflow: hidden; border-radius: 50%; }
+.glow { border-radius: 50%; mix-blend-mode: screen; background: radial-gradient(closest-side, rgba(255,246,190,.9), rgba(255,246,190,0)); }
+.screen { border-radius: 50%; mix-blend-mode: screen; background: radial-gradient(closest-side, rgba(255,150,210,.9), rgba(255,150,210,0)); }
+.crowd { background-repeat: no-repeat; background-size: 100% 100%; inset: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .sheen { animation: spin 2.6s linear infinite; }
+  .glow { animation: twinkle 2.4s ease-in-out infinite; }
+  .screen { animation: dim 3.2s ease-in-out infinite alternate; }
+  .crowd { animation: jump .55s ease-in-out infinite alternate; }
+  .crowd.r { animation-delay: .27s; }
+  .crowd.echo { transform-origin: 45% 33%; animation: ripple 1.1s ease-out infinite; }
+  .crowd.echo.d { animation-delay: .35s; }
+  @keyframes ripple { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.14); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes twinkle { 0%,100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+  @keyframes dim { from { opacity: 1; } to { opacity: .05; } }
+  @keyframes jump { from { transform: translateY(0); } to { transform: translateY(-2.5%); } }
+}
+
+/* результат */
+.result { display: flex; flex-direction: column; gap: 20px; }
+.result .pic { max-width: min(82vw, 380px); align-self: center; }
+.badge { align-self: flex-start; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.meters { display: grid; gap: 12px; background: var(--surface); border-radius: 18px; padding: 16px; }
+.meter { display: grid; gap: 6px; }
+.meter .head { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
+.meter .head b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--btn); border-radius: 5px; }
+.hint { font-size: 14px; color: var(--muted); min-height: 1.4em; }
+</style>
+
+<main class="stage" id="app" aria-live="polite"></main>
+
+<script>
+(function () {
+  // axis: "e" громкость, "s" компания. Картинка карточки: img/<номер вопроса>-<сторона>.webp
+  var QUESTIONS = [
+    { title: "Что включаешь вечером?", a: { t: "Метал или рок, чтобы прям до дрожи в стеклах", side: "loud", axis: "e" }, b: { t: "Классику или эмбиент, чтобы расслабиться", side: "calm", axis: "e" } },
+    { title: "С кем пойдешь на концерт?", a: { t: "С друганами", side: "social", axis: "s" }, b: { t: "Один, не хочу, чтобы мне мешали", side: "solo", axis: "s" } },
+    { title: "Что включаешь, когда просыпаешься?", a: { t: "Бодрый бит, чтобы зарядиться", side: "loud", axis: "e" }, b: { t: "Спокойную музыку, чтобы насладиться кофе", side: "calm", axis: "e" } },
+    { title: "Ты в поезде. Поделишься наушником?", a: { t: "Конечно, держи наушник", side: "social", axis: "s" }, b: { t: "Нет, наушники — личное", side: "solo", axis: "s" } },
+    { title: "Что включаешь, когда убираешься?", a: { t: "Панк, без него никуда", side: "loud", axis: "e" }, b: { t: "Эмбиент, звуки дождя", side: "calm", axis: "e" } },
+    { title: "Покажешь свой плейлист?", a: { t: "Конечно, лови ссылку", side: "social", axis: "s" }, b: { t: "Нет, он только мой", side: "solo", axis: "s" } },
+    { title: "За окном дождь, ты слушаешь", a: { t: "Рок, рок и еще раз рок", side: "loud", axis: "e" }, b: { t: "Джаз, и желательно на виниле", side: "calm", axis: "e" } },
+    { title: "Вышел новый альбом", a: { t: "Зову друзей послушать вместе", side: "social", axis: "s" }, b: { t: "Слушаю один, все треки только для меня", side: "solo", axis: "s" } }
+  ];
+
+  var RESULTS = {
+    "loud-social": { name: "Живой концерт", color: "loud", img: "r-concert", text: "Ты слушаешь музыку так, что в груди басы отплясывают лезгинку. Ты зовешь друзей, чтобы вместе кайфануть. Не забываешь предупредить соседей, что будет громко." },
+    "loud-solo": { name: "Наушники на максимум", color: "solo", img: "r-headphones", text: "Выкручиваешь звук, забываешь обо всем, здесь только ты и треки, которые тебя заводят и наполняют." },
+    "calm-social": { name: "Винил и гости", color: "social", img: "r-vinyl", text: "Ставишь пластинку, завариваешь ароматный чай и болтаешь до утра с теми, кто в теме и ценит винтажный звук." },
+    "calm-solo": { name: "Ночной плейлист", color: "calm", img: "r-night", text: "Ты один, звук немного приглушенный, гаснет экран телефона и ты погружаешься в мир музыки и своих лучших мыслей." }
+  };
+
+  var app = document.getElementById("app");
+  var step = -1;
+  var answers = [];
+  var lastText = "";
+
+  function src(name) { return "img/" + name + ".webp"; }
+
+  // подгружаем всё заранее, чтобы картинки не мигали при переходах
+  var all = ["cover", "r-concert", "r-headphones", "r-vinyl", "r-night"];
+  all.forEach(function (n) { var im = new Image(); im.src = src(n); });
+  QUESTIONS.forEach(function (q, i) { [q.a, q.b].forEach(function (o) { var im = new Image(); im.src = "card/" + (i + 1) + "-" + o.side + ".webp"; }); });
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = nb(text);
+    return n;
+  }
+  // неразрывный пробел после коротких слов и перед тире, чтобы не оставалось висячих предлогов
+  function nb(s) {
+    var NB = " ";
+    s = s.replace(/(^|[\s(«])([А-Яа-яЁёA-Za-z]{1,3})\s+/g, function (m, a, w) { return a + w + NB; });
+    s = s.replace(/(^|[\s(«])([А-Яа-яЁёA-Za-z]{1,3})\s+/g, function (m, a, w) { return a + w + NB; });
+    s = s.replace(/\s+([—–-])\s/g, NB + "$1 ");
+    return s;
+  }
+  // цвет фона каждой картинки, чтобы подпись под ней продолжала тот же фон
+  var BG = {"1-calm":"#0086cf","1-loud":"#fcc203","2-social":"#fc66a6","2-solo":"#7cc6b0","3-calm":"#0076ba","3-loud":"#fbc700","4-social":"#f0658a","4-solo":"#7cdfcb","5-calm":"#0087cd","5-loud":"#fac505","6-social":"#fc6286","6-solo":"#76e1cb","7-calm":"#0189da","7-loud":"#fcbe18","8-social":"#fc5a81","8-solo":"#85e6ce"};
+  var CROP = {"7-calm":1.12,"4-social":1.08};
+  var DARK_BG = {"1-calm":1,"3-calm":1,"5-calm":1,"7-calm":1};
+  function pic(name) {
+    var im = el("img", "pic");
+    im.src = src(name);
+    im.alt = "";
+    im.width = 1024; im.height = 1104;
+    im.decoding = "async";
+    return im;
+  }
+  // картинка с живыми деталями поверх; координаты в процентах от картинки
+  var FX = {
+    "cover": [{ c: "sheen", x: 52, y: 86, r: 14 }],
+    "r-vinyl": [{ c: "squash", x: 81.5, y: 83, r: 17 }],
+    "r-night": [{ c: "glow", x: 77.5, y: 15, r: 6 }, { c: "screen", x: 82, y: 92, r: 9 }],
+    "r-headphones": [{ c: "crowd echo", clip: "inset(22% 73% 46% 8%)" }, { c: "crowd echo d", clip: "inset(11% 16% 60% 64%)" }],
+    "r-concert": [{ c: "crowd l", clip: "inset(77% 76% 0 0)" }, { c: "crowd r", clip: "inset(77% 0 0 74%)" }]
+  };
+  function stage(name) {
+    var st = el("div", "hero");
+    st.appendChild(pic(name));
+    (FX[name] || []).forEach(function (f) {
+      var o = el("div", "ov " + f.c);
+      if (f.clip) {
+        o.style.backgroundImage = "url(" + src(name) + ")";
+        o.style.clipPath = f.clip;
+      } else {
+        var h = (f.r * 2) * (1024 / 1104);   // высота в % от высоты картинки: r задан в % ширины
+        o.style.left = (f.x - f.r) + "%";
+        o.style.width = (f.r * 2) + "%";
+        o.style.top = (f.y - h / 2) + "%";
+        o.style.height = h + "%";
+        o.style.aspectRatio = "";
+      }
+      if (f.c === "squash") { var inner = el("div", "sheen"); inner.style.cssText = "position:absolute;inset:0"; o.appendChild(inner); }
+      st.appendChild(o);
+    });
+    return st;
+  }
+  function topbar(right) {
+    var t = el("div", "topbar");
+    t.appendChild(el("b", null, "Какой ты слушатель"));
+    t.appendChild(el("span", null, right || ""));
+    return t;
+  }
+  function clear() { while (app.firstChild) app.removeChild(app.firstChild); }
+
+  function renderStart() {
+    clear();
+    app.appendChild(topbar(""));
+    var s = el("section", "start");
+    s.appendChild(stage("cover"));
+    s.appendChild(el("h1", null, "Какой ты слушатель"));
+    s.appendChild(el("p", "lead", "Отвечай быстро, первое, что приходит на ум"));
+    var b = el("button", "btn", "Включить");
+    b.id = "start-btn";
+    b.addEventListener("click", function () { step = 0; answers = []; renderQuestion(); });
+    s.appendChild(b);
+    app.appendChild(s);
+  }
+
+  function renderQuestion() {
+    clear();
+    var q = QUESTIONS[step];
+    app.appendChild(topbar((step + 1) + " из " + QUESTIONS.length));
+    var pr = el("div", "progress");
+    for (var i = 0; i < QUESTIONS.length; i++) {
+      pr.appendChild(el("i", i < step ? "done" : (i === step ? "now" : "")));
+    }
+    app.appendChild(pr);
+    var wrap = el("section", "q");
+    wrap.appendChild(el("h2", null, q.title));
+    var cards = el("div", "cards");
+    [q.a, q.b].forEach(function (opt) {
+      var c = el("button", "card");
+      c.type = "button";
+      c.setAttribute("data-side", opt.side);
+      var key = (step + 1) + "-" + opt.side;
+      var pc = el("img", "pic cardpic");
+      pc.src = "card/" + key + ".webp";
+      pc.alt = opt.t;
+      pc.width = 960; pc.height = 1440;
+      pc.decoding = "async";
+      c.appendChild(pc);
+      c.addEventListener("click", function () { choose(opt); });
+      cards.appendChild(c);
+    });
+    wrap.appendChild(cards);
+    app.appendChild(wrap);
+  }
+
+  function choose(opt) {
+    answers.push(opt);
+    step += 1;
+    if (step >= QUESTIONS.length) renderResult(); else renderQuestion();
+  }
+
+  function score() {
+    var loud = 0, social = 0, lastE = null, lastS = null;
+    answers.forEach(function (a) {
+      if (a.axis === "e") { if (a.side === "loud") loud++; lastE = a.side; }
+      if (a.axis === "s") { if (a.side === "social") social++; lastS = a.side; }
+    });
+    // 2 из 4 решает последний ответ по этой оси
+    var isLoud = loud > 2 || (loud === 2 && lastE === "loud");
+    var isSocial = social > 2 || (social === 2 && lastS === "social");
+    return { loud: loud, social: social, key: (isLoud ? "loud" : "calm") + "-" + (isSocial ? "social" : "solo") };
+  }
+
+  function meter(label, n, total) {
+    var m = el("div", "meter");
+    var h = el("div", "head");
+    h.appendChild(el("span", null, label));
+    h.appendChild(el("b", null, n + " из " + total));
+    m.appendChild(h);
+    var bar = el("div", "bar");
+    var fill = el("span");
+    fill.style.width = (n / total * 100) + "%";
+    bar.appendChild(fill);
+    m.appendChild(bar);
+    return m;
+  }
+
+  function renderResult() {
+    clear();
+    var sc = score();
+    var r = RESULTS[sc.key];
+    app.appendChild(topbar("результат"));
+    var sec = el("section", "result");
+    sec.appendChild(stage(r.img));
+    var badge = el("span", "badge", "Ты");
+    badge.style.background = "var(--c-" + r.color + ")";
+    badge.style.color = "var(--on-" + r.color + ")";
+    sec.appendChild(badge);
+    sec.appendChild(el("h1", null, r.name));
+    sec.appendChild(el("p", "lead", r.text));
+    var ms = el("div", "meters");
+    ms.appendChild(meter("Громкость", sc.loud, 4));
+    ms.appendChild(meter("Компания", sc.social, 4));
+    sec.appendChild(ms);
+
+    lastText = "Я — «" + r.name + "». " + r.text;
+    var row = el("div", "row");
+    var again = el("button", "btn ghost", "Пройти ещё раз");
+    again.addEventListener("click", function () { step = -1; answers = []; renderStart(); });
+    var copy = el("button", "btn", "Скопировать результат");
+    var hint = el("p", "hint", "");
+    copy.addEventListener("click", function () {
+      var done = function () { hint.textContent = "Скопировано."; };
+      var fail = function () { hint.textContent = "Не получилось скопировать. Выдели текст выше и скопируй вручную."; };
+      try {
+        navigator.clipboard.writeText(lastText).then(done, fail);
+      } catch (e) { fail(); }
+    });
+    row.appendChild(copy);
+    row.appendChild(again);
+    sec.appendChild(row);
+    sec.appendChild(hint);
+    app.appendChild(sec);
+  }
+
+  renderStart();
+})();
+</script>
+
+</html>
