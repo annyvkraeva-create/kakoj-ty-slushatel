@@ -371,14 +371,21 @@ button { font: inherit; color: inherit; cursor: pointer; }
     var row = el("div", "row");
     var again = el("button", "btn ghost", "Пройти ещё раз");
     again.addEventListener("click", function () { step = -1; answers = []; renderStart(); });
-    var copy = el("button", "btn", "Скопировать результат");
+    var copy = el("button", "btn", "Поделиться");
     var hint = el("p", "hint", "");
     copy.addEventListener("click", function () {
-      var done = function () { hint.textContent = "Скопировано."; };
+      var url = /^https?:/.test(location.href) ? location.href.split("#")[0] : "";
+      var full = url ? lastText + " " + url : lastText;
+      var done = function () { hint.textContent = "Скопировано. Вставь в чат."; };
       var fail = function () { hint.textContent = "Не получилось скопировать. Выдели текст выше и скопируй вручную."; };
-      try {
-        navigator.clipboard.writeText(lastText).then(done, fail);
-      } catch (e) { fail(); }
+      var toClipboard = function () {
+        try { navigator.clipboard.writeText(full).then(done, fail); } catch (e) { fail(); }
+      };
+      if (navigator.share) {
+        var data = { title: "Какой ты слушатель", text: lastText };
+        if (url) data.url = url;
+        navigator.share(data).catch(function (e) { if (!e || e.name !== "AbortError") toClipboard(); });
+      } else { toClipboard(); }
     });
     row.appendChild(copy);
     row.appendChild(again);
