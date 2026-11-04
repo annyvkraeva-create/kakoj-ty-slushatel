@@ -131,6 +131,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .result .hero { max-width: min(82vw, 380px); }
 .hero .pic { max-width: none; }
 .hero .ov { position: absolute; pointer-events: none; }
+.beams { mix-blend-mode: screen; background:
+  conic-gradient(from 150deg at 50% 0%, rgba(255,255,255,0) 0 5.5%, rgba(255,255,255,.38) 7.5% 10%, rgba(255,255,255,0) 12% 14%, rgba(255,255,255,.3) 16% 18.5%, rgba(255,255,255,0) 20.5% 100%); }
 .sheen { border-radius: 50%; mix-blend-mode: screen; background: conic-gradient(from 0deg, rgba(255,255,255,0) 0 8%, rgba(255,255,255,.5) 12%, rgba(255,255,255,0) 18% 55%, rgba(255,255,255,.35) 60%, rgba(255,255,255,0) 66%); }
 .squash { transform: scaleY(.34); overflow: hidden; border-radius: 50%; }
 .glow { border-radius: 50%; mix-blend-mode: screen; background: radial-gradient(closest-side, rgba(255,246,190,.9), rgba(255,246,190,0)); }
@@ -145,8 +147,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .crowd.echo { transform-origin: 45% 33%; animation: ripple 1.1s ease-out infinite; }
   .crowd.echo.d { animation-delay: .35s; }
   @keyframes ripple { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.14); } }
-  .bounce { transform-origin: 50% 100%; animation: bounce .5s ease-in-out infinite alternate; }
-  @keyframes bounce { from { transform: scaleY(1); } to { transform: scaleY(1.09); } }
+  .beams { transform-origin: 50% 0; animation: swing 2.2s ease-in-out infinite alternate, flash .55s ease-in-out infinite alternate; }
+  @keyframes swing { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
+  @keyframes flash { from { opacity: .55; } to { opacity: 1; } }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes twinkle { 0%,100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
   @keyframes dim { from { opacity: 1; } to { opacity: .05; } }
@@ -233,14 +236,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
     "r-vinyl": [{ c: "squash", x: 81.5, y: 83, r: 17 }],
     "r-night": [{ c: "glow", x: 77.5, y: 15, r: 6 }, { c: "screen", x: 82, y: 92, r: 9 }],
     "r-headphones": [{ c: "crowd echo", clip: "inset(22% 73% 46% 8%)" }, { c: "crowd echo d", clip: "inset(11% 16% 60% 64%)" }],
-    "r-concert": [{ c: "bounce", img: "r-concert-crowd" }]
+    "r-concert": [{ c: "beams", full: 1 }]
   };
   function stage(name) {
     var st = el("div", "hero");
     st.appendChild(pic(name));
     (FX[name] || []).forEach(function (f) {
       var o = el("div", "ov " + f.c);
-      if (f.img) {
+      if (f.full) {
+        o.style.left = "-60%"; o.style.width = "220%"; o.style.top = "0"; o.style.height = "220%";
+      } else if (f.img) {
         o.style.backgroundImage = "url(" + src(f.img) + ")";
         o.style.inset = "0";
         o.style.backgroundSize = "100% 100%";
