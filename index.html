@@ -417,9 +417,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
     });
   }
 
-  function renderResult() {
+  function renderResult(shared) {
     clear();
-    var sc = score();
+    var sc = shared || score();
     var r = RESULTS[sc.key];
     app.appendChild(topbar("результат"));
     var sec = el("section", "result");
@@ -442,7 +442,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     var copy = el("button", "btn", "Поделиться");
     var hint = el("p", "hint", "");
     copy.addEventListener("click", function () {
-      var url = /^https?:/.test(location.href) ? location.href.split("#")[0] : "";
+      var url = /^https?:/.test(location.href) ? location.href.split("#")[0] + "#r=" + sc.key + "&l=" + sc.loud + "&s=" + sc.social : "";
       var full = url ? lastText + " " + url : lastText;
       var done = function () { hint.textContent = "Скопировано. Вставь в чат."; };
       var fail = function () { hint.textContent = "Не получилось скопировать. Выдели текст выше и скопируй вручную."; };
@@ -470,14 +470,25 @@ button { font: inherit; color: inherit; cursor: pointer; }
         hint.textContent = "Картинка сохранена. Отправь её в чат или сторис.";
       }).catch(function () { hint.textContent = ""; shareText(); });
     });
-    row.appendChild(copy);
-    row.appendChild(again);
+    if (shared) {
+      again.textContent = "Пройти самому";
+      again.className = "btn";
+      row.appendChild(again);
+    } else {
+      row.appendChild(copy);
+      row.appendChild(again);
+    }
     sec.appendChild(row);
     sec.appendChild(hint);
     app.appendChild(sec);
   }
 
-  renderStart();
+  function fromHash() {
+    var m = /^#r=((?:loud|calm)-(?:social|solo))&l=([0-4])&s=([0-4])$/.exec(location.hash);
+    if (m && RESULTS[m[1]]) { renderResult({ key: m[1], loud: +m[2], social: +m[3] }); return true; }
+    return false;
+  }
+  if (!fromHash()) renderStart();
 })();
 </script>
 
