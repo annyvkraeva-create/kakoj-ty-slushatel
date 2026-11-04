@@ -475,7 +475,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob); a.download = "kakoj-ty-slushatel.png";
         document.body.appendChild(a); a.click(); a.remove();
-        hint.textContent = "Картинка сохранена. Отправь её в чат или сторис.";
+        hint.textContent = "Картинка сохранена.";
+        if (url) {
+          try {
+            navigator.clipboard.writeText(url).then(function () {
+              hint.textContent = "Картинка сохранена, ссылка на твой результат скопирована. Отправь их вместе: ссылку вставь в подпись.";
+            }, function () {});
+          } catch (e) {}
+        }
       }).catch(function () { hint.textContent = ""; shareText(); });
     });
     if (shared) {
