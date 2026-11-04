@@ -385,32 +385,40 @@ button { font: inherit; color: inherit; cursor: pointer; }
       c.textBaseline = "alphabetic";
       c.fillStyle = "#F1EFFA"; c.font = '600 34px "Unbounded", "Arial Black", sans-serif';
       c.fillText("Какой ты слушатель", pad, 130);
-      var iw = W - pad * 2, ih = Math.round(iw * im.height / im.width), iy = 190;
-      c.save(); rr(c, pad, iy, iw, ih, 48); c.clip(); c.drawImage(im, pad, iy, iw, ih); c.restore();
-      var y = iy + ih + 70;
+      var iw = W - pad * 2, pw = 760, ph = Math.round(pw * im.height / im.width), px = (W - pw) / 2, iy = 170;
+      c.save(); rr(c, px, iy, pw, ph, 44); c.clip(); c.drawImage(im, px, iy, pw, ph); c.restore();
+      var y = iy + ph + 56;
       c.font = '700 34px "Onest", system-ui, sans-serif';
       var bw = c.measureText("Ты").width + 56;
       c.fillStyle = COL[r.color]; rr(c, pad, y, bw, 64, 32); c.fill();
       c.fillStyle = ON[r.color]; c.fillText("Ты", pad + 28, y + 44);
-      y += 64 + 80;
-      c.fillStyle = "#F1EFFA"; c.font = '800 72px "Unbounded", "Arial Black", sans-serif';
-      wrapLines(c, r.name, iw).forEach(function (l) { c.fillText(l, pad, y); y += 88; });
-      y += 10;
-      c.fillStyle = "#A7A3BC"; c.font = '400 36px "Onest", system-ui, sans-serif';
-      var tl = wrapLines(c, r.text, iw), maxL = 5;
+      y += 64 + 70;
+      c.fillStyle = "#F1EFFA"; c.font = '800 66px "Unbounded", "Arial Black", sans-serif';
+      wrapLines(c, r.name, iw).forEach(function (l) { c.fillText(l, pad, y); y += 80; });
+      y += 4;
+      c.fillStyle = "#A7A3BC"; c.font = '400 33px "Onest", system-ui, sans-serif';
+      var tl = wrapLines(c, r.text, iw), maxL = 4;
       tl.slice(0, maxL).forEach(function (l, i) {
         if (i === maxL - 1 && tl.length > maxL) l = l.replace(/[\s,.;:!?—-]+$/, "") + "…";
-        c.fillText(l, pad, y); y += 52;
+        c.fillText(l, pad, y); y += 46;
       });
-      var my = Math.max(y + 40, 1560);
+      var my = y + 34;
       [["Громкость", sc.loud, COL.calm], ["Компания", sc.social, COL.calm]].forEach(function (m, i) {
-        var yy = my + i * 100;
+        var yy = my + i * 88;
         c.fillStyle = "#A7A3BC"; c.font = '400 30px "Onest", system-ui, sans-serif'; c.fillText(m[0], pad, yy);
         c.fillStyle = "#F1EFFA"; c.font = '700 30px "Onest", system-ui, sans-serif';
         var t = m[1] + " из 4"; c.fillText(t, W - pad - c.measureText(t).width, yy);
         c.fillStyle = "#34314A"; rr(c, pad, yy + 18, iw, 20, 10); c.fill();
         if (m[1] > 0) { c.fillStyle = m[2]; rr(c, pad, yy + 18, Math.max(20, iw * m[1] / 4), 20, 10); c.fill(); }
       });
+      var shown = /^https?:/.test(location.href) ? (location.host + location.pathname).replace(/index\.html$/, "").replace(/\/$/, "") : "annyvkraeva-create.github.io/kakoj-ty-slushatel";
+      c.fillStyle = COL[r.color]; rr(c, pad, 1750, iw, 96, 48); c.fill();
+      c.fillStyle = ON[r.color]; c.font = '800 38px "Unbounded", "Arial Black", sans-serif';
+      var cta = "А ты какой слушатель?", cw = c.measureText(cta).width;
+      c.fillText(cta, (W - cw) / 2, 1750 + 62);
+      c.fillStyle = "#A7A3BC"; c.font = '400 28px "Onest", system-ui, sans-serif';
+      var uw = c.measureText(shown).width;
+      c.fillText(shown, (W - uw) / 2, 1890);
       return new Promise(function (ok, no) {
         try { cv.toBlob(function (b) { b ? ok(b) : no(new Error("blob")); }, "image/png"); } catch (e) { no(e); }
       });
@@ -471,7 +479,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
       }).catch(function () { hint.textContent = ""; shareText(); });
     });
     if (shared) {
-      again.textContent = "Пройти самому";
+      again.textContent = "А ты какой слушатель?";
       again.className = "btn";
       row.appendChild(again);
     } else {
