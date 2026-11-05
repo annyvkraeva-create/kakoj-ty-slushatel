@@ -495,6 +495,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
     }
     sec.appendChild(row);
     sec.appendChild(hint);
+    if (!shared) {
+      var lk = el("button", "btn ghost", "Скопировать ссылку на мой результат");
+      lk.addEventListener("click", function () {
+        var u = /^https?:/.test(location.href) ? location.href.split("#")[0] + "#r=" + sc.key + "&l=" + sc.loud + "&s=" + sc.social : "";
+        if (!u) { hint.textContent = "Ссылка работает на опубликованном сайте."; return; }
+        try {
+          navigator.clipboard.writeText(u).then(function () { hint.textContent = "Ссылка скопирована. Вставь её рядом с картинкой."; },
+            function () { hint.textContent = "Не получилось скопировать: " + u; });
+        } catch (e) { hint.textContent = "Не получилось скопировать: " + u; }
+      });
+      sec.appendChild(lk);
+    }
     app.appendChild(sec);
   }
 
